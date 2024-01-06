@@ -1,7 +1,7 @@
-import { NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import prisma from "../_base";
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   const { name, email } = await req.json();
 
   const result = await prisma.user.create({
@@ -15,8 +15,10 @@ export async function POST(req: Request) {
   return NextResponse.json(result);
 }
 
-export async function GET(req: Request) {
+export async function GET(req: NextRequest) {
   const searchValue = req.nextUrl.searchParams.get("search");
+
+  if (!searchValue) return NextResponse.json([]);
 
   const result = await prisma.user.findMany({
     where: {
