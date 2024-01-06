@@ -1,21 +1,53 @@
 "use client";
 
 import Image from "next/image";
-import { ReactEventHandler } from "react";
+import { ReactEventHandler, use, useState } from "react";
+
+type Users = {
+  name: string;
+  email: string;
+}[];
 
 export default function Home() {
-  const handleSubmit = async (e: any) => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [searchValue, setSearchValue] = useState("");
+  const [users, setUsers] = useState<Users | null>(null);
+
+  const handleCreateUser = async (e: any) => {
     e.preventDefault();
 
     try {
-      const body = { name: e.target[0].value, email: e.target[1].value };
+      const body = {
+        name,
+        email,
+      };
 
-      const response = await fetch("/api/user", {
+      setName("");
+      setEmail("");
+
+      await fetch("/api/user", {
         method: "POST",
         body: JSON.stringify(body),
       });
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
-      console.log(response.json());
+  // Get user by name or email
+  const handleGetUser = async (e: any) => {
+    e.preventDefault();
+
+    // pass searchValue to api/user as query param
+
+    setSearchValue("");
+
+    try {
+      const res = await fetch(`/api/user?search=${searchValue}`);
+      const data = await res.json();
+
+      setUsers(data);
     } catch (error) {
       console.log(error);
     }
@@ -60,34 +92,55 @@ export default function Home() {
       </div>
 
       <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleCreateUser} className="flex flex-col gap-4">
+          {}
+
+          <h3 className="mb-3 text-2xl font-semibold">Create user</h3>
           <label>
             Name
-            <input type="text" />
+            <input type="text" onChange={(e) => setName(e.target.value)} />
           </label>
           <label>
             Email
-            <input type="email" />
+            <input type="email" onChange={(e) => setEmail(e.target.value)} />
           </label>
-          <button type="submit">Submit</button>
+          <button
+            type="submit"
+            className="p-3 rounded-lg  bg-white border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+          >
+            Submit
+          </button>
         </form>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+        <form onSubmit={handleGetUser} className="flex flex-col gap-4">
+          {users && users.length > 0 && (
+            <div className="flex flex-col gap-4">
+              <h3 className="mb-3 text-2xl font-semibold">Users</h3>
+              {users.map((user) => (
+                <div key={user.email}>
+                  <p>{user.name}</p>
+                  <p>{user.email}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <h3 className="mb-3 text-2xl font-semibold">Get user</h3>
+          <label>
+            Name or email
+            <input
+              type="text"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            className="p-3 rounded-lg  bg-white border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
+          >
+            Submit
+          </button>
+        </form>
 
         <a
           href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
